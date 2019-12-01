@@ -9,6 +9,13 @@ namespace AdventOfCode2019.Solutions
     {
         private IList<int> ModuleAmounts { get; set; }
         private Func<int, int> Fuel = x => x / 3 - 2;
+        private int FuelOfFuel(int amount)
+        {
+            if (amount < 0)
+                return 0;
+            
+            return Fuel(amount) + Math.Max(0, FuelOfFuel(Fuel(amount)));
+        }
 
         public Day01(string filename)
         {
@@ -30,14 +37,6 @@ namespace AdventOfCode2019.Solutions
         public int Solution2()
         {
             return ModuleAmounts.Select(FuelOfFuel).Sum();
-        }
-
-        private int FuelOfFuel(int amount)
-        {
-            if (amount < 0)
-                return 0;
-            
-            return Fuel(amount) + Math.Max(0, FuelOfFuel(Fuel(amount)));
         }
     }
 }
