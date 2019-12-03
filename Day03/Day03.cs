@@ -40,7 +40,9 @@ namespace AdventOfCode2019.Solutions
             foreach (var coordinate in GetRoute(Wire2))
             {
                 if (FrontPanel.ContainsKey(coordinate) && FrontPanel[coordinate] > 0)
-                    action(coordinate, FrontPanel[coordinate] + counter++);
+                    action(coordinate, FrontPanel[coordinate] + counter);
+                
+                ++counter;
             }
         }
 
@@ -52,8 +54,7 @@ namespace AdventOfCode2019.Solutions
             coordinatesWire.Insert(0, new Coordinate(0, 0));
 
             return coordinatesWire.
-                Skip(1).
-                Zip(coordinatesWire, (a, b) => new { First = a, Second = b }).
+                Zip(coordinatesWire.Skip(1), (a, b) => new { First = a, Second = b }).
                 Select(c => Coordinate.PointsBetween(c.First, c.Second)).
                 SelectMany(c => c);
         }

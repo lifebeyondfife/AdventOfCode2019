@@ -41,7 +41,7 @@ namespace AdventOfCode2019.Solutions
 
         public static IEnumerable<Coordinate> PointsBetween(Coordinate a, Coordinate b)
         {
-            return a.X == b.X ? PointsBetweenY(a.X, a.Y, b.Y) : PointsBetweenX(a.Y, a.X, a.Y); 
+            return a.X == b.X ? PointsBetweenY(a.X, a.Y, b.Y) : PointsBetweenX(a.Y, a.X, b.X); 
         }
 
         private static IEnumerable<Coordinate> PointsBetweenY(int x, int y0, int y1)
