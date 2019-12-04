@@ -12,6 +12,7 @@ namespace AdventOfCode2019.Solutions
     {
         private int LowerBound { get; set; }
         private int UpperBound { get; set; }
+        
         public Day04(string input)
         {
             var boundStrings = input.Split('-');
