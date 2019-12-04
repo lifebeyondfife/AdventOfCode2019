@@ -12,7 +12,7 @@ namespace AdventOfCode2019.Solutions
     {
         private int LowerBound { get; set; }
         private int UpperBound { get; set; }
-        
+
         public Day04(string input)
         {
             var boundStrings = input.Split('-');
@@ -40,7 +40,7 @@ namespace AdventOfCode2019.Solutions
             constraints.Add(new ConstraintInteger(a * 100000 + b * 10000 + c * 1000 + d * 100 + e * 10 + f <= UpperBound));
 
             IState<int> state = new StateInteger(new [] {a, b, c, d, e, f}, constraints);
-			state.StartSearch(out StateOperationResult searchResult, out IList<IDictionary<string, IVariable<int>>> solutions);
+            state.StartSearch(out StateOperationResult searchResult, out IList<IDictionary<string, IVariable<int>>> solutions);
 
             return solutions.Count;
         }
@@ -71,7 +71,7 @@ namespace AdventOfCode2019.Solutions
             constraints.Add(new ConstraintInteger(a * 100000 + b * 10000 + c * 1000 + d * 100 + e * 10 + f <= UpperBound));
 
             IState<int> state = new StateInteger(new [] {a, b, c, d, e, f}, constraints);
-			state.StartSearch(out StateOperationResult searchResult, out IList<IDictionary<string, IVariable<int>>> solutions);
+            state.StartSearch(out StateOperationResult searchResult, out IList<IDictionary<string, IVariable<int>>> solutions);
 
             return solutions.Count;
         }
