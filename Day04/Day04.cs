@@ -59,16 +59,13 @@ namespace AdventOfCode2019.Solutions
             constraints.Add(new ConstraintInteger(c <= d));
             constraints.Add(new ConstraintInteger(d <= e));
             constraints.Add(new ConstraintInteger(e <= f));
-
-            // 352 is too low
             constraints.Add(new ConstraintInteger(
-                ((a == b) & (b != c) & !((c == d) & (d == e)) & !((d == e) & (e == f))) |
-                ((b == c) & (a != b) & (c != d) & !((d == e) & (e == f))) |
+                ((a == b) & (b != c)) |
+                ((b == c) & (a != b) & (c != d)) |
                 ((c == d) & (b != c) & (d != e)) |
-                ((d == e) & (c != d) & (e != f) & !((a == b) & (b == c))) |
-                ((e == f) & (d != e) & !((a == b) & (b == c)) & !((b == c) & (c == d)))
+                ((d == e) & (c != d) & (e != f)) |
+                ((e == f) & (d != e))
             ));
-
             constraints.Add(new ConstraintInteger(a * 100000 + b * 10000 + c * 1000 + d * 100 + e * 10 + f >= LowerBound));
             constraints.Add(new ConstraintInteger(a * 100000 + b * 10000 + c * 1000 + d * 100 + e * 10 + f <= UpperBound));
 
