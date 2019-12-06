@@ -20,7 +20,7 @@ namespace AdventOfCode2019.Solutions
         public Day01(string filename)
         {
             ModuleAmounts = File.ReadAllLines(filename).
-                Select(x => Int32.Parse(x)).
+                Select(Int32.Parse).
                 ToList();
         }
 
