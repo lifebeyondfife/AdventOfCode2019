@@ -22,6 +22,15 @@ namespace AdventOfCode2019.Solutions
             );
         }
 
+        public Day07(IEnumerable<int> codes)
+        {
+            Machine = new IntCodeMachine(
+                codes.
+                Select((x, i) => new { Key = i, Value = x }).
+                ToDictionary(x => x.Key, x => x.Value)
+            );
+        }
+
         private static void Permutations(IList<int> permutations, IList<IList<int>> outputs, int range, int k) 
         { 
             permutations[k] = ++Level; 
@@ -63,12 +72,12 @@ namespace AdventOfCode2019.Solutions
             return machineOutput;
         }
 
-        private int ChainedCycleInputs(IList<int> inputs)
+        public int ChainedCycleInputs(IList<int> inputs)
         {
             var machineInputs = inputs.Select(x => (IList<int>) new [] { x }.ToList()).ToList();
             machineInputs[0].Add(0);
 
-            return ChainedMachine.ExecuteCycledProgram(Machine, (IList<IList<int>>) machineInputs);
+            return ChainedMachine.ExecuteCycledProgram(Machine, (IList<IList<int>>) machineInputs).Result;
         }
 
         public int Solution1()

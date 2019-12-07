@@ -6,11 +6,15 @@ namespace AdventOfCode2019.Solutions
 {
     public class IntCodeMachine
     {
-
-        protected IDictionary<int, int> OriginalIntCode { get; set; }
+        public IDictionary<int, int> OriginalIntCode { get; private set; }
+        public OpCode PreviousOpCode { get; private set; }
         protected IDictionary<int, int> IntCode { get; set; }
         protected IDictionary<Instruction, Action<Action<int>, Queue<int>, Queue<int>, OpCode, int[]>> Commands { get; set; }
         
+        public IntCodeMachine()
+        {
+        }
+
         public IntCodeMachine(IDictionary<int, int> intCode)
         {
             OriginalIntCode = intCode;
@@ -80,16 +84,9 @@ namespace AdventOfCode2019.Solutions
                 IntCode[location] = 0;
         }
 
-        protected void ResetState()
-        {
-            var intCode = new KeyValuePair<int, int>[OriginalIntCode.Count];
-            OriginalIntCode.CopyTo(intCode, 0);
-            IntCode = intCode.ToDictionary(x => x.Key, x => x.Value);
-        }
-
         public void ExecuteProgram(Queue<int> inputs, out IList<int> outputs)
         {
-            ResetState();
+            IntCode = OriginalIntCode.ToDictionary(x => x.Key, x => x.Value);
 
             outputs = default(IList<int>);
             var outputQueue = new Queue<int>();
@@ -99,6 +96,7 @@ namespace AdventOfCode2019.Solutions
                 int? pointerReset = null;
                 Action<int> setPointer = x => pointerReset = x;
                 var opCode = (OpCode) IntCode[i];
+                PreviousOpCode = opCode;
 
                 if (opCode.Instruction == Instruction.End)
                 {

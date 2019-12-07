@@ -25,8 +25,8 @@ namespace AdventOfCode2019.Solutions
 
     public struct OpCode
     {
-        internal IList<Mode> Modes { get; set; }
-        internal Instruction Instruction { get; set; }
+        public IList<Mode> Modes { get; set; }
+        public Instruction Instruction { get; set; }
         public int Skip {
             get {
                 switch (Instruction)

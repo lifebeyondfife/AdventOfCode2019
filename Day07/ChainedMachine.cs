@@ -10,46 +10,55 @@ namespace AdventOfCode2019.Solutions
         private int Id { get; set; }
         private static IList<Queue<int>> Inputs { get; set; }
         private static IList<Queue<int>> Outputs { get; set; }
+        private static IList<ChainedMachine> Machines { get; set; }
 
-        public ChainedMachine(IDictionary<int, int> intCode)
-            : base(intCode)
+        public ChainedMachine(IntCodeMachine machine)
+            : base(machine.OriginalIntCode.ToDictionary(x => x.Key, x => x.Value))
         {
         }
 
-        public static async Task WaitUntil(Func<bool> condition, int frequency = 25, int timeout = -1)
+        private ChainedMachine(IntCodeMachine machine, int id)
+            : this(machine)
         {
-            var waitTask = Task.Run(async () =>
+            Id = id;
+        }
+
+        protected override void Input(Queue<int> inputs, int location)
+        {
+            while (Inputs[Id].Count == 0)
             {
-                while (!condition())
-                    await Task.Delay(frequency);
-            });
+                Task.Delay(100);
+            }
 
-            if (waitTask != await Task.WhenAny(waitTask, Task.Delay(timeout))) 
-                throw new TimeoutException();
-        }
+            if (Inputs[Id].Count == 0)
+            {
+                Console.WriteLine($"Id: {Id}");
+            }
 
-       protected override void Input(Queue<int> inputs, int location)
-        {
-            var hasInput = WaitUntil(() => inputs.Count > 0);
-
-            // replace with your own implementaion which uses the injected queue
-            base.Input(inputs, location);
+            IntCode[location] = Inputs[Id].Dequeue();
         }
 
         protected override void Output(OpCode opCode, Queue<int> outputs, int location)
         {
-            // replace with your own implementaion which uses the injected queue
-            base.Output(opCode, outputs, location);
+            Inputs[(Id + 1) % 5].Enqueue(opCode.Modes[0] == Mode.Immediate ? location : IntCode[location]);
         }
 
-        public static int ExecuteCycledProgram(IntCodeMachine machine, IList<IList<int>> inputs)
+        public static async Task<int> ExecuteCycledProgram(IntCodeMachine machine, IList<IList<int>> inputs)
         {
-            // create input and output queues
+            Inputs = inputs.Select(x => new Queue<int>(x)).ToList();
+            Machines = Inputs.Select((_, i) => new ChainedMachine(machine, i)).ToList();
 
-            // create copies of 'machine', hand out Id values appropriately
-            
-            // when inputs / outputs are ready, put them on the right queue
-            return 0;
+            foreach (var chainedMachine in Machines)
+            {
+                await Task.Run(() => chainedMachine.ExecuteProgram(null, out IList<int> outputs));
+            }
+
+            while (Machines.Last().PreviousOpCode.Instruction != Instruction.End)
+            {
+                Task.Delay(100);
+            }
+
+            return Inputs.First().First();
         }
     }
 }
