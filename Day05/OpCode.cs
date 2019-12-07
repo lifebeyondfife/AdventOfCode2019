@@ -4,13 +4,13 @@ using System.Linq;
 
 namespace AdventOfCode2019.Solutions
 {
-    enum Mode
+    public enum Mode
     {
         Position = 0,
         Immediate = 1
     }
 
-    enum Instruction
+    public enum Instruction
     {
         Addition = 1,
         Multiplication = 2,

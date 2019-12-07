@@ -22,14 +22,14 @@ namespace AdventOfCode2019.Solutions
 
         public int Solution1()
         {
-            Machine.ExecuteProgram(new Stack<int>(new [] { 1 }), out IList<int> outputs);
+            Machine.ExecuteProgram(new Queue<int>(new [] { 1 }), out IList<int> outputs);
             
             return outputs.Last();
         }
 
         public int Solution2()
         {
-            Machine.ExecuteProgram(new Stack<int>(new [] { 5 }), out IList<int> outputs);
+            Machine.ExecuteProgram(new Queue<int>(new [] { 5 }), out IList<int> outputs);
             
             return outputs.Last();
         }
