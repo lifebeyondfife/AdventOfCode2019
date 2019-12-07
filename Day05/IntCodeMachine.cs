@@ -30,18 +30,14 @@ namespace AdventOfCode2019.Solutions
 
         private void Addition(OpCode opCode, int operand1, int operand2, int location)
         {
-            var a = opCode.Modes[0] == Mode.Immediate ? operand1 : IntCode[operand1];
-            var b = opCode.Modes[1] == Mode.Immediate ? operand2 : IntCode[operand2];
-
-            IntCode[location] = a + b;
+            IntCode[location] = (opCode.Modes[0] == Mode.Immediate ? operand1 : IntCode[operand1]) +
+                (opCode.Modes[1] == Mode.Immediate ? operand2 : IntCode[operand2]);
         }
 
         private void Multiplication(OpCode opCode, int operand1, int operand2, int location)
         {
-            var a = opCode.Modes[0] == Mode.Immediate ? operand1 : IntCode[operand1];
-            var b = opCode.Modes[1] == Mode.Immediate ? operand2 : IntCode[operand2];
-
-            IntCode[location] = a * b;
+            IntCode[location] = (opCode.Modes[0] == Mode.Immediate ? operand1 : IntCode[operand1]) *
+                (opCode.Modes[1] == Mode.Immediate ? operand2 : IntCode[operand2]);
         }
 
         private void Input(Stack<int> inputs, int location)
