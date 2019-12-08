@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Channels;
 using System.IO;
 using System.Linq;
 
@@ -22,14 +23,26 @@ namespace AdventOfCode2019.Solutions
 
         public int Solution1()
         {
-            Machine.ExecuteProgram(new Queue<int>(new [] { 1 }), out IList<int> outputs);
+            var outputs = new List<int>();
+            Action<int> output = i => outputs.Add(i);
+
+            var inputs = Channel.CreateUnbounded<int>();
+            inputs.Writer.WriteAsync(1);
+
+            Machine.ExecuteProgram(inputs, output);
             
             return outputs.Last();
         }
 
         public int Solution2()
         {
-            Machine.ExecuteProgram(new Queue<int>(new [] { 5 }), out IList<int> outputs);
+            var outputs = new List<int>();
+            Action<int> output = i => outputs.Add(i);
+
+            var inputs = Channel.CreateUnbounded<int>();
+            inputs.Writer.WriteAsync(5);
+
+            Machine.ExecuteProgram(inputs, output);
             
             return outputs.Last();
         }

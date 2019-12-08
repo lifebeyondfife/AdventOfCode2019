@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Channels;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -61,12 +62,15 @@ namespace AdventOfCode2019.Solutions
         private int ChainedInputs(IList<int> inputs)
         {
             var machineOutput = 0;
+            Action<int> outputLambda = i => machineOutput = i;
+
             foreach (var phase in inputs)
             {
-                var machineInput = new Queue<int>(new [] { phase, machineOutput });
+                var machineInputs = Channel.CreateUnbounded<int>();
+                machineInputs.Writer.WriteAsync(phase);
+                machineInputs.Writer.WriteAsync(machineOutput);
 
-                Machine.ExecuteProgram(machineInput, out IList<int> outputs);
-                machineOutput = outputs.First();
+                Machine.ExecuteProgram(machineInputs, outputLambda);
             }
 
             return machineOutput;
@@ -77,7 +81,7 @@ namespace AdventOfCode2019.Solutions
             var machineInputs = inputs.Select(x => (IList<int>) new [] { x }.ToList()).ToList();
             machineInputs[0].Add(0);
 
-            return ChainedMachine.ExecuteCycledProgram(Machine, (IList<IList<int>>) machineInputs).Result;
+            return ChainedMachine.ExecuteCycledProgram(Machine, (IList<IList<int>>) machineInputs);
         }
 
         public int Solution1()

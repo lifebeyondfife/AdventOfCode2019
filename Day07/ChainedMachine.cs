@@ -1,15 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 
 namespace AdventOfCode2019.Solutions
 {
     public class ChainedMachine : IntCodeMachine
     {
-        private int Id { get; set; }
-        private static IList<Queue<int>> Inputs { get; set; }
-        private static IList<Queue<int>> Outputs { get; set; }
+        private static IList<Channel<int>> Inputs { get; set; }
         private static IList<ChainedMachine> Machines { get; set; }
 
         public ChainedMachine(IntCodeMachine machine)
@@ -23,42 +22,33 @@ namespace AdventOfCode2019.Solutions
             Id = id;
         }
 
-        protected override void Input(Queue<int> inputs, int location)
+        public static Channel<int> GetPopulatedChannel(IList<int> inputs)
         {
-            while (Inputs[Id].Count == 0)
-            {
-                Task.Delay(100);
-            }
+            var channel = Channel.CreateUnbounded<int>();
 
-            if (Inputs[Id].Count == 0)
-            {
-                Console.WriteLine($"Id: {Id}");
-            }
+            foreach (var input in inputs)
+                channel.Writer.WriteAsync(input);
 
-            IntCode[location] = Inputs[Id].Dequeue();
+            return channel;
         }
 
-        protected override void Output(OpCode opCode, Queue<int> outputs, int location)
+        public static int ExecuteCycledProgram(IntCodeMachine machine, IList<IList<int>> inputs)
         {
-            Inputs[(Id + 1) % 5].Enqueue(opCode.Modes[0] == Mode.Immediate ? location : IntCode[location]);
-        }
-
-        public static async Task<int> ExecuteCycledProgram(IntCodeMachine machine, IList<IList<int>> inputs)
-        {
-            Inputs = inputs.Select(x => new Queue<int>(x)).ToList();
+            Inputs = inputs.Select(GetPopulatedChannel).ToList();
             Machines = Inputs.Select((_, i) => new ChainedMachine(machine, i)).ToList();
 
-            foreach (var chainedMachine in Machines)
-            {
-                await Task.Run(() => chainedMachine.ExecuteProgram(null, out IList<int> outputs));
-            }
+            Task.WaitAll(Enumerable.Range(0, Machines.Count).
+                Select(i => Task.Run(() => {
+                    Action<int> outputLambda = x => Inputs[(i + 1) % Inputs.Count].Writer.WriteAsync(x);
+                    Machines[i].ExecuteProgram(Inputs[i], outputLambda);
+                })).
+                ToArray()
+            );
 
-            while (Machines.Last().PreviousOpCode.Instruction != Instruction.End)
-            {
-                Task.Delay(100);
-            }
+            var answer = Inputs[0].Reader.ReadAsync().AsTask();
+            answer.Wait();
 
-            return Inputs.First().First();
+            return answer.Result;
         }
     }
 }

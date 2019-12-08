@@ -1,15 +1,16 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Channels;
 
 namespace AdventOfCode2019.Solutions
 {
     public class IntCodeMachine
     {
         public IDictionary<int, int> OriginalIntCode { get; private set; }
-        public OpCode PreviousOpCode { get; private set; }
+        protected int Id { get; set; }
         protected IDictionary<int, int> IntCode { get; set; }
-        protected IDictionary<Instruction, Action<Action<int>, Queue<int>, Queue<int>, OpCode, int[]>> Commands { get; set; }
+        protected IDictionary<Instruction, Action<Action<int>, Channel<int>, Action<int>, OpCode, int[]>> Commands { get; set; }
         
         public IntCodeMachine()
         {
@@ -19,7 +20,7 @@ namespace AdventOfCode2019.Solutions
         {
             OriginalIntCode = intCode;
             Commands =
-                new Dictionary<Instruction, Action<Action<int>, Queue<int>, Queue<int>, OpCode, int[]>>
+                new Dictionary<Instruction, Action<Action<int>, Channel<int>, Action<int>, OpCode, int[]>>
                 {
                     { Instruction.Addition, (s, i, o, op, p) => Addition(op, p[0], p[1], p[2]) },
                     { Instruction.Multiplication, (s, i, o, op, p) => Multiplication(op, p[0], p[1], p[2]) },
@@ -32,41 +33,43 @@ namespace AdventOfCode2019.Solutions
                 };
         }
 
-        protected void Addition(OpCode opCode, int operand1, int operand2, int location)
+        private void Addition(OpCode opCode, int operand1, int operand2, int location)
         {
             IntCode[location] = (opCode.Modes[0] == Mode.Immediate ? operand1 : IntCode[operand1]) +
                 (opCode.Modes[1] == Mode.Immediate ? operand2 : IntCode[operand2]);
         }
 
-        protected void Multiplication(OpCode opCode, int operand1, int operand2, int location)
+        private void Multiplication(OpCode opCode, int operand1, int operand2, int location)
         {
             IntCode[location] = (opCode.Modes[0] == Mode.Immediate ? operand1 : IntCode[operand1]) *
                 (opCode.Modes[1] == Mode.Immediate ? operand2 : IntCode[operand2]);
         }
 
-        protected virtual void Input(Queue<int> inputs, int location)
+        private void Input(Channel<int> inputs, int location)
         {
-            IntCode[location] = inputs.Dequeue();
+            var inputTask = inputs.Reader.ReadAsync().AsTask();
+            inputTask.Wait();
+            IntCode[location] = inputTask.Result;
         }
 
-        protected virtual void Output(OpCode opCode, Queue<int> outputs, int location)
+        private void Output(OpCode opCode, Action<int> output, int location)
         {
-            outputs.Enqueue(opCode.Modes[0] == Mode.Immediate ? location : IntCode[location]);
+            output(opCode.Modes[0] == Mode.Immediate ? location : IntCode[location]);
         }
 
-        protected void JumpIfTrue(Action<int> setPointer, OpCode opCode, int operand1, int operand2)
+        private void JumpIfTrue(Action<int> setPointer, OpCode opCode, int operand1, int operand2)
         {
             if ((opCode.Modes[0] == Mode.Immediate ? operand1 : IntCode[operand1]) != 0)
                 setPointer(opCode.Modes[1] == Mode.Immediate ? operand2 : IntCode[operand2]);
         }
 
-        protected void JumpIfFalse(Action<int> setPointer, OpCode opCode, int operand1, int operand2)
+        private void JumpIfFalse(Action<int> setPointer, OpCode opCode, int operand1, int operand2)
         {
             if ((opCode.Modes[0] == Mode.Immediate ? operand1 : IntCode[operand1]) == 0)
                 setPointer(opCode.Modes[1] == Mode.Immediate ? operand2 : IntCode[operand2]);
         }
 
-        protected void LessThan(OpCode opCode, int operand1, int operand2, int location)
+        private void LessThan(OpCode opCode, int operand1, int operand2, int location)
         {
             if ((opCode.Modes[0] == Mode.Immediate ? operand1 : IntCode[operand1]) <
                 (opCode.Modes[1] == Mode.Immediate ? operand2 : IntCode[operand2]))
@@ -75,7 +78,7 @@ namespace AdventOfCode2019.Solutions
                 IntCode[location] = 0;
         }
 
-        protected void Equals(OpCode opCode, int operand1, int operand2, int location)
+        private void Equals(OpCode opCode, int operand1, int operand2, int location)
         {
             if ((opCode.Modes[0] == Mode.Immediate ? operand1 : IntCode[operand1]) ==
                 (opCode.Modes[1] == Mode.Immediate ? operand2 : IntCode[operand2]))
@@ -84,28 +87,22 @@ namespace AdventOfCode2019.Solutions
                 IntCode[location] = 0;
         }
 
-        public void ExecuteProgram(Queue<int> inputs, out IList<int> outputs)
+        public void ExecuteProgram(Channel<int> inputs, Action<int> output)
         {
             IntCode = OriginalIntCode.ToDictionary(x => x.Key, x => x.Value);
 
-            outputs = default(IList<int>);
-            var outputQueue = new Queue<int>();
             var i = 0;
             while (i < IntCode.Keys.Count)
             {
                 int? pointerReset = null;
                 Action<int> setPointer = x => pointerReset = x;
                 var opCode = (OpCode) IntCode[i];
-                PreviousOpCode = opCode;
 
                 if (opCode.Instruction == Instruction.End)
-                {
-                    outputs = outputQueue.ToList();
                     return;
-                }
                 
                 Commands[opCode.Instruction](
-                    setPointer, inputs, outputQueue, opCode,
+                    setPointer, inputs, output, opCode,
                     Enumerable.
                         Range(i + 1, opCode.Skip).
                         Select(x => IntCode[x]).
