@@ -1,21 +1,26 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Channels;
 
 namespace AdventOfCode2019.Solutions
 {
     public class IntCodeMachine
     {
-
-        private IDictionary<int, int> OriginalIntCode { get; set; }
-        private IDictionary<int, int> IntCode { get; set; }
-        private IDictionary<Instruction, Action<Action<int>, Stack<int>, IList<int>, OpCode, int[]>> Commands { get; set; }
+        public IDictionary<int, int> OriginalIntCode { get; private set; }
+        protected int Id { get; set; }
+        protected IDictionary<int, int> IntCode { get; set; }
+        protected IDictionary<Instruction, Action<Action<int>, Channel<int>, Action<int>, OpCode, int[]>> Commands { get; set; }
         
+        public IntCodeMachine()
+        {
+        }
+
         public IntCodeMachine(IDictionary<int, int> intCode)
         {
             OriginalIntCode = intCode;
             Commands =
-                new Dictionary<Instruction, Action<Action<int>, Stack<int>, IList<int>, OpCode, int[]>>
+                new Dictionary<Instruction, Action<Action<int>, Channel<int>, Action<int>, OpCode, int[]>>
                 {
                     { Instruction.Addition, (s, i, o, op, p) => Addition(op, p[0], p[1], p[2]) },
                     { Instruction.Multiplication, (s, i, o, op, p) => Multiplication(op, p[0], p[1], p[2]) },
@@ -40,14 +45,16 @@ namespace AdventOfCode2019.Solutions
                 (opCode.Modes[1] == Mode.Immediate ? operand2 : IntCode[operand2]);
         }
 
-        private void Input(Stack<int> inputs, int location)
+        private void Input(Channel<int> inputs, int location)
         {
-            IntCode[location] = inputs.Pop();
+            var inputTask = inputs.Reader.ReadAsync().AsTask();
+            inputTask.Wait();
+            IntCode[location] = inputTask.Result;
         }
 
-        private void Output(OpCode opCode, IList<int> outputs, int location)
+        private void Output(OpCode opCode, Action<int> output, int location)
         {
-            outputs.Add(opCode.Modes[0] == Mode.Immediate ? location : IntCode[location]);
+            output(opCode.Modes[0] == Mode.Immediate ? location : IntCode[location]);
         }
 
         private void JumpIfTrue(Action<int> setPointer, OpCode opCode, int operand1, int operand2)
@@ -80,18 +87,10 @@ namespace AdventOfCode2019.Solutions
                 IntCode[location] = 0;
         }
 
-        private void ResetState()
+        public void ExecuteProgram(Channel<int> inputs, Action<int> output)
         {
-            var intCode = new KeyValuePair<int, int>[OriginalIntCode.Count];
-            OriginalIntCode.CopyTo(intCode, 0);
-            IntCode = intCode.ToDictionary(x => x.Key, x => x.Value);
-        }
+            IntCode = OriginalIntCode.ToDictionary(x => x.Key, x => x.Value);
 
-        public void ExecuteProgram(Stack<int> inputs, out IList<int> outputs)
-        {
-            ResetState();
-
-            outputs = new List<int>();
             var i = 0;
             while (i < IntCode.Keys.Count)
             {
@@ -103,7 +102,7 @@ namespace AdventOfCode2019.Solutions
                     return;
                 
                 Commands[opCode.Instruction](
-                    setPointer, inputs, outputs, opCode,
+                    setPointer, inputs, output, opCode,
                     Enumerable.
                         Range(i + 1, opCode.Skip).
                         Select(x => IntCode[x]).
