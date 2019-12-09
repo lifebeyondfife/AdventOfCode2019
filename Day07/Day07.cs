@@ -11,30 +11,30 @@ namespace AdventOfCode2019.Solutions
     public class Day07
     {
         private IntCodeMachine Machine { get; set; }
-        private static int Level { get; set; }
-        private static int Offset { get; set; }
+        private static long Level { get; set; }
+        private static long Offset { get; set; }
 
         public Day07(string filename)
         {
             Machine = new IntCodeMachine(
                 File.ReadLines(filename).
                 SelectMany(x => x.Split(',')).
-                Select(Int32.Parse).
-                Select((x, i) => new { Key = i, Value = x }).
+                Select(Int64.Parse).
+                Select((x, i) => new { Key = (long) i, Value = x }).
                 ToDictionary(x => x.Key, x => x.Value)
             );
         }
 
-        public Day07(IEnumerable<int> codes)
+        public Day07(IEnumerable<long> codes)
         {
             Machine = new IntCodeMachine(
                 codes.
-                Select((x, i) => new { Key = i, Value = x }).
+                Select((x, i) => new { Key = (long) i, Value = x }).
                 ToDictionary(x => x.Key, x => x.Value)
             );
         }
 
-        private static void Permutations(IList<int> permutations, IList<IList<int>> outputs, int range, int k) 
+        private static void Permutations(IList<long> permutations, IList<IList<long>> outputs, int range, int k) 
         { 
             permutations[k] = ++Level; 
         
@@ -49,10 +49,10 @@ namespace AdventOfCode2019.Solutions
             permutations[k] = 0;
         } 
 
-        private IList<IList<int>> Inputs(int offset)
+        private IList<IList<long>> Inputs(long offset)
         {
-            var range = Enumerable.Repeat(0, 5).ToList();
-            var outputs = new List<IList<int>>();
+            var range = Enumerable.Repeat(0L, 5).ToList();
+            var outputs = new List<IList<long>>();
 
             Level = -1;
             Offset = offset;
@@ -61,14 +61,14 @@ namespace AdventOfCode2019.Solutions
             return outputs;
         }
 
-        private int ChainedInputs(IList<int> inputs)
+        private long ChainedInputs(IList<long> inputs)
         {
-            var machineOutput = 0;
-            Action<int> outputLambda = i => machineOutput = i;
+            var machineOutput = 0L;
+            Action<long> outputLambda = i => machineOutput = i;
 
             foreach (var phase in inputs)
             {
-                var machineInputs = Channel.CreateUnbounded<int>();
+                var machineInputs = Channel.CreateUnbounded<long>();
                 machineInputs.Writer.WriteAsync(phase);
                 machineInputs.Writer.WriteAsync(machineOutput);
 
@@ -78,20 +78,20 @@ namespace AdventOfCode2019.Solutions
             return machineOutput;
         }
 
-        public int ChainedCycleInputs(IList<int> inputs)
+        public long ChainedCycleInputs(IList<long> inputs)
         {
-            var machineInputs = inputs.Select(x => (IList<int>) new [] { x }.ToList()).ToList();
+            var machineInputs = inputs.Select(x => (IList<long>) new long[] { x }.ToList()).ToList();
             machineInputs[0].Add(0);
 
-            return ChainedMachine.ExecuteCycledProgram(Machine, (IList<IList<int>>) machineInputs);
+            return ChainedMachine.ExecuteCycledProgram(Machine, (IList<IList<long>>) machineInputs);
         }
 
-        public int Solution1()
+        public long Solution1()
         {
             return Inputs(-1).Select(ChainedInputs).Max();
         }
 
-        public int Solution2()
+        public long Solution2()
         {
             return Inputs(4).Select(ChainedCycleInputs).Max();
         }

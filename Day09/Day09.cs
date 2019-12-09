@@ -1,23 +1,33 @@
 using System;
 using System.Collections.Generic;
-using System.Threading.Channels;
 using System.IO;
 using System.Linq;
+using System.Text;
+using System.Threading.Channels;
 
 using AdventOfCode2019.Library;
 
 namespace AdventOfCode2019.Solutions
 {
-    public class Day05
+    public class Day09
     {
-        private IntCodeMachine Machine { get; set; }
-        
-        public Day05(string filename)
+        public IntCodeMachine Machine { get; set; }
+
+        public Day09(string filename)
         {
             Machine = new IntCodeMachine(
                 File.ReadLines(filename).
                 SelectMany(x => x.Split(',')).
                 Select(Int64.Parse).
+                Select((x, i) => new { Key = (long) i, Value = x }).
+                ToDictionary(x => x.Key, x => x.Value)
+            );
+        }
+
+        public Day09(IEnumerable<long> intcode)
+        {
+            Machine = new IntCodeMachine(
+                intcode.
                 Select((x, i) => new { Key = (long) i, Value = x }).
                 ToDictionary(x => x.Key, x => x.Value)
             );
@@ -42,7 +52,7 @@ namespace AdventOfCode2019.Solutions
             Action<long> output = i => outputs.Add(i);
 
             var inputs = Channel.CreateUnbounded<long>();
-            inputs.Writer.WriteAsync(5);
+            inputs.Writer.WriteAsync(2);
 
             Machine.ExecuteProgram(inputs, output);
             
