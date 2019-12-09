@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Day05\Day05.csproj" />
+    <ProjectReference Include="..\IntCode\IntCode.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

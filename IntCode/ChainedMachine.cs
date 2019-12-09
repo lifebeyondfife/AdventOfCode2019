@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 
-namespace AdventOfCode2019.Solutions
+namespace AdventOfCode2019.Library
 {
     public class ChainedMachine : IntCodeMachine
     {
