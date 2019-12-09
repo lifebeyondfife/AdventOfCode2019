@@ -7,7 +7,8 @@ namespace AdventOfCode2019.Library
     public enum Mode
     {
         Position = 0,
-        Immediate = 1
+        Immediate = 1,
+        Relative = 2
     }
 
     public enum Instruction
@@ -20,7 +21,8 @@ namespace AdventOfCode2019.Library
         JumpIfFalse = 6,
         LessThan = 7,
         Equals = 8,
-        End = 9
+        Offset = 9,
+        End = 99
     }
 
     public struct OpCode
@@ -32,7 +34,8 @@ namespace AdventOfCode2019.Library
                 switch (Instruction)
                 {
                     case Instruction.Input:
-                    case Instruction.Output: return 2;
+                    case Instruction.Output:
+                    case Instruction.Offset: return 2;
                     case Instruction.JumpIfTrue:
                     case Instruction.JumpIfFalse: return 3;
                     case Instruction.Addition:
