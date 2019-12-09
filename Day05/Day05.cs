@@ -4,6 +4,8 @@ using System.Threading.Channels;
 using System.IO;
 using System.Linq;
 
+using AdventOfCode2019.Library;
+
 namespace AdventOfCode2019.Solutions
 {
     public class Day05
