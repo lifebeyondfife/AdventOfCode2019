@@ -9,6 +9,8 @@ namespace AdventOfCode2019.Tests
     {
         [Theory]
         [InlineData(new string[] {".#..#", ".....", "#####", "....#", "...##"}, 8)]
+        [InlineData(new string[] {"......#.#.", "#..#.#....", "..#######.", ".#.#.###..",
+            ".#..#.....", "..#....#.#", "#..#....#.", ".##.#..###", "##...#..#.", ".#....####"}, 33)]
         public void TestSolution1(IEnumerable<string> asteroids, int expected)
         {
             var day10 = new Day10(asteroids);

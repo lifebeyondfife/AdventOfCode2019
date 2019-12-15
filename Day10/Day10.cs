@@ -100,39 +100,97 @@ namespace AdventOfCode2019.Solutions
             CoordinateDeltas.Remove(new Coordinate(0, 0));
         }
 
-        private int ApplyDelta(Coordinate coordinate, Coordinate delta)
+        private int ApplyDelta(Coordinate coordinate, Coordinate delta, out Coordinate? foundAsteroid)
         {
             do
             {
                 coordinate = new Coordinate(coordinate.X + delta.X, coordinate.Y + delta.Y);
 
                 if (AsteroidField.ContainsKey(coordinate) && AsteroidField[coordinate] == Grid.Asteroid)
+                {
+                    foundAsteroid = coordinate;
                     return 1;
+                }
             } while (AsteroidField.ContainsKey(coordinate));
 
+            foundAsteroid = null;
             return 0;
+        }
+
+        private double GetAngle(Coordinate coordinate)
+        {
+            if (coordinate.X == 0)
+                return coordinate.Y < 0 ? 0d : Math.PI;
+            
+            if (coordinate.Y == 0)
+                return coordinate.X > 0 ? Math.PI / 2 : 3 * Math.PI / 2;
+            
+            if (coordinate.X > 0 && coordinate.Y < 0)
+                return Math.Atan(- (double) coordinate.X / (double) coordinate.Y);
+            if (coordinate.X > 0 && coordinate.Y > 0)
+                return Math.PI / 2 + Math.Atan((double) coordinate.Y / (double) coordinate.X);
+            if (coordinate.X < 0 && coordinate.Y > 0)
+                return Math.PI + Math.Atan(- (double) coordinate.X / (double) coordinate.Y);
+            if (coordinate.X < 0 && coordinate.Y < 0)
+                return 3 * Math.PI / 2 + Math.Atan((double) coordinate.Y / (double) coordinate.X);
+            
+            throw new ApplicationException("Cannot calculate angle of unexpected coordinate");
+        }
+
+        private IDictionary<Coordinate, int> AsteroidsSeen()
+        {
+            var foundAsteroid = default(Coordinate?);
+
+            return Asteroids.
+                Select(asteroid => new {
+                    Key = asteroid,
+                    Value = CoordinateDeltas.Sum(delta => ApplyDelta(asteroid, delta, out foundAsteroid))
+                }).
+                ToDictionary(x => x.Key, x => x.Value);
+        }
+
+        private Coordinate DeleteAsteroids(Coordinate station, IList<Coordinate> deltas, int nthAsteroid)
+        {
+            var deletedAsteroids = default(int);
+
+            while (deletedAsteroids < nthAsteroid)
+            {
+                foreach (var delta in deltas)
+                {
+                    var asteroidFound = default(Coordinate?);
+
+                    if (ApplyDelta(station, delta, out asteroidFound) == 1)
+                    {
+                        AsteroidField.Remove(asteroidFound.Value);
+                        
+                        if (++deletedAsteroids == nthAsteroid)
+                            return asteroidFound.Value;
+                    }
+                }
+            }
+
+            throw new ApplicationException("Could not find asteroid");
         }
 
         public int Solution1()
         {
-            var asteroidsSeen = Asteroids.
-                Select(asteroid => new {
-                    Key = asteroid,
-                    Value = CoordinateDeltas.Sum(delta => ApplyDelta(asteroid, delta))
-                }).
-                ToDictionary(x => x.Key, x => x.Value);
-
-            return asteroidsSeen.Values.Max();
+            return AsteroidsSeen().Values.Max();
         }
 
-        public int Solution2()
+        public int Solution2(int nthAsteroid)
         {
-            // create a cartesian delta to polar delta function
-            // order the deltas by polar
-            // find an asteroid delete it
-            //  while (previousAsteroid < 200)
-            //      for (polar deltas etc.)
-            return 0;
+            var station = AsteroidsSeen().
+                OrderByDescending(kvp => kvp.Value).
+                First().
+                Key;
+            
+            var orderedDeltas = CoordinateDeltas.
+                OrderBy(GetAngle).
+                ToList();
+
+            var asteroid = DeleteAsteroids(station, orderedDeltas, nthAsteroid);
+
+            return asteroid.X * 100 + asteroid.Y;
         }
     }
 }
