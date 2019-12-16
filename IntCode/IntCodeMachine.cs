@@ -25,13 +25,13 @@ namespace AdventOfCode2019.Library
                 {
                     { Instruction.Addition, (s, i, o, op, p) => Addition(op, p[0], p[1], p[2]) },
                     { Instruction.Multiplication, (s, i, o, op, p) => Multiplication(op, p[0], p[1], p[2]) },
-                    { Instruction.Offset, (s, i, o, op, p) => Offset(op, p[0]) },
                     { Instruction.Input, (s, i, o, op, p) => Input(i, op, p[0]) },
                     { Instruction.Output, (s, i, o, op, p) => Output(op, o, p[0]) },
                     { Instruction.JumpIfTrue, (s, i, o, op, p) => JumpIfTrue(s, op, p[0], p[1]) },
                     { Instruction.JumpIfFalse, (s, i, o, op, p) => JumpIfFalse(s, op, p[0], p[1]) },
                     { Instruction.LessThan, (s, i, o, op, p) => LessThan(op, p[0], p[1], p[2]) },
-                    { Instruction.Equals, (s, i, o, op, p) => Equals(op, p[0], p[1], p[2]) }                    
+                    { Instruction.Equals, (s, i, o, op, p) => Equals(op, p[0], p[1], p[2]) },
+                    { Instruction.Offset, (s, i, o, op, p) => Offset(op, p[0]) }
                 };
         }
 
@@ -67,11 +67,6 @@ namespace AdventOfCode2019.Library
         {
             IntCode[LiteralValue(location, opCode.Modes[2])] = InterpretedValue(operand1, opCode.Modes[0])
                 * InterpretedValue(operand2, opCode.Modes[1]);
-        }
-
-        private void Offset(OpCode opCode, long location)
-        {
-            Base += InterpretedValue(location, opCode.Modes[0]);
         }
 
         private void Input(Channel<long> inputs, OpCode opCode, long location)
@@ -112,6 +107,11 @@ namespace AdventOfCode2019.Library
                 IntCode[LiteralValue(location, opCode.Modes[2])] = 1;
             else
                 IntCode[LiteralValue(location, opCode.Modes[2])] = 0;
+        }
+
+        private void Offset(OpCode opCode, long location)
+        {
+            Base += InterpretedValue(location, opCode.Modes[0]);
         }
 
         public void ExecuteProgram(Channel<long> inputs, Action<long> output)

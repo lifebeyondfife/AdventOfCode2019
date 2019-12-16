@@ -137,6 +137,19 @@
             "stopAtEntry": false
         },
         {
+            "name": ".NET Core Launch (console) Day 11",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build11",
+            // If you have changed target frameworks, make sure to update the program path.
+            "program": "${workspaceFolder}/Day11/bin/Debug/netcoreapp3.0/Day11.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/Day11",
+            // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
+            "console": "internalConsole",
+            "stopAtEntry": false
+        },
+        {
             "name": ".NET Core Attach",
             "type": "coreclr",
             "request": "attach",
