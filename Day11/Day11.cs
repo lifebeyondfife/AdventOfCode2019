@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Channels;
+using System.Text;
 
 using AdventOfCode2019.Library;
 
@@ -23,6 +24,8 @@ namespace AdventOfCode2019.Solutions
         private Complex RobotDirection { get; set; }
         private Channel<long> RobotSensor { get; set; }
         private ISet<Coordinate> Painted { get; set; }
+        private string[,] PaintedHull { get; set; }
+
 
         public Day11(string filename)
         {
@@ -33,7 +36,11 @@ namespace AdventOfCode2019.Solutions
                 Select((x, i) => new { Key = (long) i, Value = x }).
                 ToDictionary(x => x.Key, x => x.Value)
             );
+        }
 
+        private void ResetRobot()
+        {
+            Hull = new Dictionary<Coordinate, Colour>();
             RobotPosition = new Coordinate(0, 0);
             RobotDirection = Complex.ImaginaryOne;
             RobotSensor = Channel.CreateUnbounded<long>();
@@ -64,6 +71,8 @@ namespace AdventOfCode2019.Solutions
 
         public int Solution1()
         {
+            ResetRobot();
+
             var paintNext = true;
             Action<long> output = i => {
                 if (paintNext)
@@ -80,9 +89,49 @@ namespace AdventOfCode2019.Solutions
             return Painted.Count;
         }
 
-        public int Solution2()
+        private string PrintPaintedHull()
         {
-            return 0;
+            PaintedHull = new string[Painted.Max(h => h.X) + 1, Painted.Max(h => h.Y) + 1];
+
+            for (var j = 0; j <= PaintedHull.GetUpperBound(1); ++j)
+                for (var i = 0; i <= PaintedHull.GetUpperBound(0); ++i)
+                     PaintedHull[i, j] = " ";
+
+            foreach (var paintedSquare in Hull.Where(p => p.Value == Colour.White))
+                PaintedHull[paintedSquare.Key.X, paintedSquare.Key.Y] = "█";
+
+            var image = new StringBuilder("\n");
+
+            for (var j = 0; j <= PaintedHull.GetUpperBound(1); ++j)
+            {
+                for (var i = 0; i <= PaintedHull.GetUpperBound(0); ++i)
+                {
+                    image.Append(PaintedHull[i, j]);
+                }
+                image.AppendLine();
+            }
+
+            return image.ToString();
+        }
+
+        public string Solution2()
+        {
+            ResetRobot();
+
+            var paintNext = true;
+            Action<long> output = i => {
+                if (paintNext)
+                    RobotPaint(i == 0 ? Colour.Black : Colour.White);
+                else
+                    RobotMove(i == 0 ? new Complex(0, 1) : new Complex(0, -1));
+                
+                paintNext = !paintNext;
+            };
+
+            RobotSensor.Writer.WriteAsync((long) Colour.White);
+            Machine.ExecuteProgram(RobotSensor, output);
+            
+            return PrintPaintedHull();
         }
     }
 }

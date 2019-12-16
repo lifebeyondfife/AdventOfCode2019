@@ -50,7 +50,7 @@ namespace AdventOfCode2019.Library
         {
             switch (mode)
             {
-                case Mode.Position: throw new ApplicationException("Cannot write to value");
+                case Mode.Position:
                 case Mode.Immediate: return location;
                 case Mode.Relative: return location + Base;
                 default: throw new ApplicationException("Unknown mode type");

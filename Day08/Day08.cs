@@ -54,7 +54,7 @@ namespace AdventOfCode2019.Solutions
                 SkipWhile(x => x == 2).
                 First();
 
-            return pixelCode == 0 ? " " : "█";
+            return pixelCode == 0 ? " " : "?";
         }
 
         public string Solution2()
