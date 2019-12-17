@@ -24,8 +24,6 @@ namespace AdventOfCode2019.Solutions
         private Complex RobotDirection { get; set; }
         private Channel<long> RobotSensor { get; set; }
         private ISet<Coordinate> Painted { get; set; }
-        private string[,] PaintedHull { get; set; }
-
 
         public Day11(string filename)
         {
@@ -91,22 +89,22 @@ namespace AdventOfCode2019.Solutions
 
         private string PrintPaintedHull()
         {
-            PaintedHull = new string[Painted.Max(h => h.X) + 1, Painted.Max(h => h.Y) + 1];
+            var paintedHull = new string[Painted.Max(h => h.X) + 1, Painted.Max(h => h.Y) + 1];
 
-            for (var j = 0; j <= PaintedHull.GetUpperBound(1); ++j)
-                for (var i = 0; i <= PaintedHull.GetUpperBound(0); ++i)
-                     PaintedHull[i, j] = " ";
+            for (var j = 0; j <= paintedHull.GetUpperBound(1); ++j)
+                for (var i = 0; i <= paintedHull.GetUpperBound(0); ++i)
+                     paintedHull[i, j] = " ";
 
             foreach (var paintedSquare in Hull.Where(p => p.Value == Colour.White))
-                PaintedHull[paintedSquare.Key.X, paintedSquare.Key.Y] = "█";
+                paintedHull[paintedSquare.Key.X, paintedSquare.Key.Y] = "█";
 
             var image = new StringBuilder("\n");
 
-            for (var j = 0; j <= PaintedHull.GetUpperBound(1); ++j)
+            for (var j = 0; j <= paintedHull.GetUpperBound(1); ++j)
             {
-                for (var i = 0; i <= PaintedHull.GetUpperBound(0); ++i)
+                for (var i = 0; i <= paintedHull.GetUpperBound(0); ++i)
                 {
-                    image.Append(PaintedHull[i, j]);
+                    image.Append(paintedHull[i, j]);
                 }
                 image.AppendLine();
             }
